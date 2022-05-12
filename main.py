@@ -3,6 +3,9 @@ from pygame.locals import *
 
 pygame.init()
 
+clock = pygame.time.Clock()
+fps = 60
+
 #Declare window size
 screen_width = 1000
 screen_height = 1000
@@ -26,18 +29,29 @@ def draw_grid():
 
 class Player():
     def __init__(self, x , y):
-        img = pygame.image.load('img/guy1.png')
-        self.image = pygame.transform.scale(img, (40, 80))
+        self.images_right = []
+        self.images_left = []
+        self.index = 0
+        self.counter = 0
+        for num in range(1, 5):
+            img_right = pygame.image.load(f'img/guy{num}.png')
+            img_right = pygame.transform.scale(img_right, (40, 80))
+            img_left = pygame.transform.flip(img_right, True, False)
+            self.images_right.append(img_right)
+            self.images_left.append(img_left)
+        self.image = self.images_right[self.index]
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
         self.vel_y = 0
         self.jumped = False
+        self.direction = 0
 
     def update(self):
         dx=0
         dy=0    
-    
+        walk_cooldown=5
+
         #Get key strokes
         key=pygame.key.get_pressed()
         if key[pygame.K_SPACE] and self.jumped == False:
@@ -47,14 +61,34 @@ class Player():
             self.jumped = False
         if key[pygame.K_LEFT]:
             dx-=5
+            self.counter +=1
+            self.direction = -1
         if key[pygame.K_RIGHT]:
             dx+=5
-        
+            self.counter +=1
+            self.direction = 1
+        if key[pygame.K_LEFT] == False and key[pygame.K_RIGHT] == False:
+            self.counter = 0
+            self.index = 0
+            if self.direction == 1:
+                self.image = self.images_right[self.index]   
+            if self.direction == -1:
+                self.image = self.images_left[self.index]        
+
+        #Animation
+        if self.counter > walk_cooldown:
+            self.counter = 0
+            self.index += 1
+            if self.index >= len(self.images_right):
+                self.index = 0
+            if self.direction == 1:
+                self.image = self.images_right[self.index]   
+            if self.direction == -1:
+                self.image = self.images_left[self.index]
         #Gravity
         self.vel_y += 1
         if self.vel_y > 10:
             self.vel_y = 10
-
         dy += self.vel_y
 
         #Check Collison
@@ -68,6 +102,7 @@ class Player():
             dy=0
         #Draw player to screen
         screen.blit(self.image, self.rect)
+
 
 class World():
     def __init__(self, data):
@@ -131,6 +166,7 @@ world = World(world_data)
 #Main game loop
 run = True
 while run:
+    clock.tick(fps)
 
     #Draw Images to Screen
     screen.blit(bg_img, (0,0))
