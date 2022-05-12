@@ -29,7 +29,45 @@ class Player():
         img = pygame.image.load('img/guy1.png')
         self.image = pygame.transform.scale(img, (40, 80))
         self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.vel_y = 0
+        self.jumped = False
 
+    def update(self):
+        dx=0
+        dy=0    
+    
+        #Get key strokes
+        key=pygame.key.get_pressed()
+        if key[pygame.K_SPACE] and self.jumped == False:
+            self.vel_y = -15
+            self.jumped = True
+        if key[pygame.K_SPACE] == False:
+            self.jumped = False
+        if key[pygame.K_LEFT]:
+            dx-=5
+        if key[pygame.K_RIGHT]:
+            dx+=5
+        
+        #Gravity
+        self.vel_y += 1
+        if self.vel_y > 10:
+            self.vel_y = 10
+
+        dy += self.vel_y
+
+        #Check Collison
+
+        #Update Player Posiotion
+        self.rect.x +=dx
+        self.rect.y +=dy
+
+        if self.rect.bottom > screen_height:
+            self.rect.bottom = screen_height
+            dy=0
+        #Draw player to screen
+        screen.blit(self.image, self.rect)
 
 class World():
     def __init__(self, data):
@@ -65,15 +103,32 @@ class World():
             screen.blit(tile[0], tile[1])
 
 world_data = [
-[1, 1, 1, 1, 1,],
-[1, 0, 0, 0, 1,],
-[1, 0, 0, 0, 1,],
-[1, 0, 0, 0, 1,],
-[1, 2, 2, 2, 1,],
+[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
+[1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1], 
+[1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 2, 2, 1], 
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 7, 0, 5, 0, 0, 0, 1], 
+[1, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 1], 
+[1, 7, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
+[1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 7, 0, 0, 0, 0, 1], 
+[1, 0, 2, 0, 0, 7, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
+[1, 0, 0, 2, 0, 0, 4, 0, 0, 0, 0, 3, 0, 0, 3, 0, 0, 0, 0, 1], 
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 1], 
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 7, 0, 0, 0, 0, 2, 0, 1], 
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 2, 2, 2, 2, 2, 1], 
+[1, 0, 0, 0, 0, 0, 2, 2, 2, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1], 
+[1, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 
+[1, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 
+[1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
 
+player = Player(100, screen_height - 130)
 world = World(world_data)
 
+#Main game loop
 run = True
 while run:
 
@@ -81,10 +136,9 @@ while run:
     screen.blit(bg_img, (0,0))
     screen.blit(sun_img, (100,100))
     world.draw()
+    player.update()
 
-    draw_grid()
-
-    #print(world.tile_list)
+    #draw_grid()
 
     #Close window when quit is selected
     for event in pygame.event.get():
