@@ -2,9 +2,12 @@ from re import S
 import re
 import pygame
 from pygame.locals import *
+from pygame import mixer
 import pickle
 from os import path
 
+pygame.mixer.pre_init(44100, -16, 2, 512)
+mixer.init()
 pygame.init()
 
 clock = pygame.time.Clock()
@@ -29,6 +32,18 @@ bg_img = pygame.image.load('img/sky.png')
 restart_image = pygame.image.load('img/restart_btn.png')
 start_img = pygame.image.load('img/start_btn.png')
 exit_img = pygame.image.load('img/exit_btn.png')
+
+#load sounds
+pygame.mixer.music.load('sound/music.wav')
+pygame.mixer.music.play(-1, 0.0, 2000)
+
+coin_fx = pygame.mixer.Sound('sound/coin.wav')
+coin_fx.set_volume(0.5)
+jump_fx = pygame.mixer.Sound('sound/jump.wav')
+jump_fx.set_volume(0.5)
+game_over_fx = pygame.mixer.Sound('sound/game_over.wav')
+game_over_fx.set_volume(0.5)
+
 
 #Game Variables
 tile_size = 50
@@ -104,6 +119,7 @@ class Player():
             #Get key strokes
             key=pygame.key.get_pressed()
             if key[pygame.K_SPACE] or key[pygame.K_UP] and self.jumped == False and self.in_air == False:
+                jump_fx.play()
                 self.vel_y = -15
                 self.jumped = True
             if key[pygame.K_SPACE] or key[pygame.K_UP] == False:
@@ -159,10 +175,12 @@ class Player():
             #Check for collision with enemies
             if pygame.sprite.spritecollide(self, blob_group, False):
                 game_over = -1
+                game_over_fx.play()
             
             #Check for collision with lava
             if pygame.sprite.spritecollide(self, lava_group, False):
                 game_over = -1
+                game_over_fx.play()
 
             #Check collision with exit
             if pygame.sprite.spritecollide(self, exit_group, False):
@@ -344,9 +362,8 @@ while run:
             #check if coin collected
             if pygame.sprite.spritecollide(player, coin_group, True):
                 score += 1
-            draw_text('x ' + str(score), font_score, white, tile_size - 10, 10 )
-            
-
+                coin_fx.play()
+            draw_text('x ' + str(score), font_score, white, tile_size - 10, 10 )  
 
         blob_group.draw(screen)
         lava_group.draw(screen)
