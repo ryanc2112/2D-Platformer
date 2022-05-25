@@ -18,6 +18,11 @@ screen_height = 1000
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Platformer')
 
+
+#define font
+font = pygame.font.SysFont('Bauhaus 93', 70)
+font_score = pygame.font.SysFont('Bauhaus 93', 30)
+
 #load images
 sun_img = pygame.image.load('img/sun.png')
 bg_img = pygame.image.load('img/sky.png')
@@ -31,13 +36,18 @@ game_over = 0
 main_menu = True
 level = 0
 max_levels = 7
+score = 0
 
-def draw_grid():
-    for line in range(0, 20):
-        pygame.draw.line(screen, (0, 0, 0), (0, line * tile_size), (screen_width, line * tile_size))
-        pygame.draw.line(screen, (0, 0, 0), (line * tile_size, 0), (line * tile_size, screen_height))
+#define colours
+white = (255,255,255)
+blue = (0,0,255)
+black = (0,0,0)
 
-#function to reset leve
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
+
+#function to reset level
 def reset_level(level):
     player.reset(100, screen_height -130)
     blob_group.empty()
@@ -165,7 +175,7 @@ class Player():
 
         elif game_over == -1:
             self.image = self.dead_image
-
+            draw_text('GAME OVER!', font, white, (screen_width // 2) - 200, screen_height // 2 - 80)
 
             #Draw player to screen
         screen.blit(self.image, self.rect)
@@ -228,6 +238,9 @@ class World():
                 if tile == 6:
                     lava = Lava(col_count * tile_size, row_count * tile_size + (tile_size // 2))
                     lava_group.add(lava)
+                if tile == 7:
+                    coin = Coin(col_count * tile_size + (tile_size // 2), row_count * tile_size + (tile_size // 2))
+                    coin_group.add(coin)
                 if tile == 8:
                     exit = Exit(col_count * tile_size, row_count * tile_size - (tile_size // 2))
                     exit_group.add(exit)
@@ -268,6 +281,14 @@ class Lava(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        img = pygame.image.load('img/coin.png')
+        self.image = pygame.transform.scale(img, (tile_size // 2, tile_size // 2))
+        self.rect = self.image.get_rect()
+        self.rect.center = (x , y)
+
 class Exit(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -280,7 +301,12 @@ class Exit(pygame.sprite.Sprite):
 player = Player(100, screen_height - 130)
 blob_group = pygame.sprite.Group()
 lava_group = pygame.sprite.Group()
+coin_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
+
+#Coin for showing score
+score_coin = Coin(tile_size // 2, tile_size // 2)
+coin_group.add(score_coin)
 
 
 #Load in level data and create world
@@ -314,10 +340,18 @@ while run:
 
         if game_over == 0:
             blob_group.update()
+            #update score
+            #check if coin collected
+            if pygame.sprite.spritecollide(player, coin_group, True):
+                score += 1
+            draw_text('x ' + str(score), font_score, white, tile_size - 10, 10 )
+            
+
 
         blob_group.draw(screen)
         lava_group.draw(screen)
         exit_group.draw(screen)
+        coin_group.draw(screen)
         game_over = player.update(game_over)
 
         #if player dies
@@ -326,8 +360,9 @@ while run:
                 world_data = []
                 world = reset_level(level)
                 game_over = 0
+                score = 0
         
-        #if player completes leve
+        #if player completes level
         if game_over == 1:
             #reset and go to next level
             level += 1
@@ -337,12 +372,14 @@ while run:
                 world = reset_level(level)
                 game_over = 0
             else:
+                draw_text('YOU WIN!', font, white, (screen_width // 2) - 140, screen_height // 2)
                 #restart game
                 if restart_button.draw():
                     level = 1
                     world_data = []
                     world = reset_level(level)
                     game_over = 0
+                    score = 0
 
     #Close window when quit is selected
     for event in pygame.event.get():
