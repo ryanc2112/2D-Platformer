@@ -452,6 +452,7 @@ while run:
                 world = reset_level(level)
                 game_over = 0
                 score = 0
+                
         
         #if player completes level
         if game_over == 1:
@@ -463,11 +464,13 @@ while run:
                 world = reset_level(level)
                 game_over = 0
             else:
-                draw_text('YOU WIN!', font, white, (screen_width // 2) - 140, screen_height // 2 -130)
+                draw_text('YOU WIN!', font, white, (screen_width // 2) - 140, screen_height // 2 -180)
                 draw_text('Score: ' + str(score), font, white, (screen_width // 2) - 140, screen_height // 2 -80)
-                update_score(score)
+                if int(score) > int(last_score):
+                    draw_text('NEW HIGH SCORE!' , font, white, (screen_width // 2) - 140, screen_height // 2 -130)
                 #restart game
                 if restart_button.draw():
+                    update_score(score)
                     level = 1
                     world_data = []
                     world = reset_level(level)
