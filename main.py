@@ -1,5 +1,6 @@
 from re import S
 import re
+from turtle import update
 import pygame
 from pygame.locals import *
 from pygame import mixer
@@ -62,10 +63,27 @@ def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     screen.blit(img, (x, y))
 
+def update_score(nscore):
+    score = max_score()
+    
+    with open('scores.txt', 'w') as f:
+        if int(score) > nscore:
+            f.write(str(score))
+        else:
+            f.write(str(nscore))
+
+def max_score():
+    with open('scores.txt' , 'r') as f:
+        lines = f.readlines()
+        score = lines[0].strip()
+    
+    return score
+
 #function to reset level
 def reset_level(level):
     player.reset(100, screen_height -130)
     blob_group.empty()
+    coin_group.empty()
     lava_group.empty()
     exit_group.empty()
     platform_group.empty()
@@ -371,10 +389,11 @@ platform_group = pygame.sprite.Group()
 lava_group = pygame.sprite.Group()
 coin_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
+score_coin_group = pygame.sprite.Group()
 
 #Coin for showing score
 score_coin = Coin(tile_size // 2, tile_size // 2)
-coin_group.add(score_coin)
+score_coin_group.add(score_coin)
 
 
 #Load in level data and create world
@@ -392,12 +411,14 @@ run = True
 while run:
 
     clock.tick(fps)
+    last_score = max_score()
 
     #Draw Images to Screen
     screen.blit(bg_img, (0,0))
     screen.blit(sun_img, (100,100))
 
     if main_menu == True:
+        draw_text('High Score = ' + last_score, font, white, (screen_width // 2)- 200, screen_height // 2 -130)
         if exit_button.draw():
             run = False
         if start_button.draw():
@@ -421,6 +442,7 @@ while run:
         lava_group.draw(screen)
         exit_group.draw(screen)
         coin_group.draw(screen)
+        score_coin_group.draw(screen)
         game_over = player.update(game_over)
 
         #if player dies
@@ -441,7 +463,9 @@ while run:
                 world = reset_level(level)
                 game_over = 0
             else:
-                draw_text('YOU WIN!', font, white, (screen_width // 2) - 140, screen_height // 2 -80)
+                draw_text('YOU WIN!', font, white, (screen_width // 2) - 140, screen_height // 2 -130)
+                draw_text('Score: ' + str(score), font, white, (screen_width // 2) - 140, screen_height // 2 -80)
+                update_score(score)
                 #restart game
                 if restart_button.draw():
                     level = 1
