@@ -33,6 +33,7 @@ bg_img = pygame.image.load('img/sky.png')
 restart_image = pygame.image.load('img/restart_btn.png')
 start_img = pygame.image.load('img/start_btn.png')
 exit_img = pygame.image.load('img/exit_btn.png')
+menu_background_img = pygame.image.load('img/menu_background.png')
 
 #load sounds
 pygame.mixer.music.load('sound/music.wav')
@@ -50,7 +51,7 @@ game_over_fx.set_volume(0.5)
 tile_size = 50
 game_over = 0
 main_menu = True
-level = 1
+level = 7
 max_levels = 7
 score = 0
 
@@ -233,6 +234,7 @@ class Player():
 
         elif game_over == -1:
             self.image = self.dead_image
+            screen.blit(menu_background_img,((screen_width // 2) - 475, (screen_height // 2) - 300))
             draw_text('GAME OVER!', font, white, (screen_width // 2) - 200, screen_height // 2 - 80)
 
             #Draw player to screen
@@ -412,12 +414,14 @@ while run:
 
     clock.tick(fps)
     last_score = max_score()
+    key=pygame.key.get_pressed()
 
     #Draw Images to Screen
     screen.blit(bg_img, (0,0))
     screen.blit(sun_img, (100,100))
 
     if main_menu == True:
+        screen.blit(menu_background_img,((screen_width // 2) - 475, (screen_height // 2) - 300))
         draw_text('High Score = ' + last_score, font, white, (screen_width // 2)- 200, screen_height // 2 -130)
         if exit_button.draw():
             run = False
@@ -447,7 +451,7 @@ while run:
 
         #if player dies
         if game_over == -1:
-            if restart_button.draw():
+            if restart_button.draw() or key[pygame.K_r]:
                 world_data = []
                 world = reset_level(level)
                 game_over = 0
@@ -464,10 +468,11 @@ while run:
                 world = reset_level(level)
                 game_over = 0
             else:
+                screen.blit(menu_background_img,((screen_width // 2) - 475, (screen_height // 2) - 300))
                 draw_text('YOU WIN!', font, white, (screen_width // 2) - 140, screen_height // 2 -180)
                 draw_text('Score: ' + str(score), font, white, (screen_width // 2) - 140, screen_height // 2 -80)
                 if int(score) > int(last_score):
-                    draw_text('NEW HIGH SCORE!' , font, white, (screen_width // 2) - 140, screen_height // 2 -130)
+                    draw_text('NEW HIGH SCORE!' , font, white, (screen_width // 2) - 250, screen_height // 2 -130)
                 #restart game
                 if restart_button.draw():
                     update_score(score)
